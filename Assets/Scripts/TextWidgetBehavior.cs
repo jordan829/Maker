@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
 
 public class TextWidgetBehavior : MonoBehaviour {
 
@@ -74,9 +76,58 @@ public class TextWidgetBehavior : MonoBehaviour {
 				}
 				break;
 
+			case "Rot+":
+				if (selectedCell != null) {
+					if (selectedCell.GetComponent<CellParams> ().rotationY < 270) {
+						selectedCell.GetComponent<CellParams> ().rotationY += 90;
+					} else {
+						selectedCell.GetComponent<CellParams> ().rotationY = 0;
+					}
+					//selectedCell.transform.Rotate (new Vector3 (0.0f, 90.0f, 0.0f));
+				}
+				break;
 
+			case "Delete":
+				if (selectedCell != null) {
+					stylus.GetComponent<Stylus2> ().lastCellSelected = null;
 
+					//Deleting from list of transforms
+					List<Transform> transformList = MasterBehavior.allCells;
 
+					for (int i = 0; i < transformList.Count; i++) {
+						if (transformList [i].gameObject.GetInstanceID () == selectedCell.GetInstanceID ()) {
+							transformList.RemoveAt (i);
+							break;
+						}
+					}
+						
+					MasterBehavior.allCells = transformList;
+
+					Destroy (selectedCell);
+				}
+				break;
+
+			case "Play":
+				print ("Playing..");
+				stylus.GetComponent<Stylus2> ().lastCellSelected = null;
+				GameParams.SetupPlay ();
+				break;
+
+			case "Stop":
+				print ("Stopping..");
+				stylus.GetComponent<Stylus2> ().lastCellSelected = null;
+				GameParams.StoppingPlay ();
+				break;
+
+			case "CamRot+":
+				GameObject mountCam = GameObject.FindGameObjectWithTag ("MountCamera");
+				if (mountCam.GetComponent<MountCamera> ().rotationY < 270) {
+					mountCam.GetComponent<MountCamera> ().rotationY += 90;
+					} else {
+					mountCam.GetComponent<MountCamera> ().rotationY = 0;
+					}
+					//selectedCell.transform.Rotate (new Vector3 (0.0f, 90.0f, 0.0f));
+				break;
 
 			default:
 				break;

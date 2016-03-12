@@ -25,6 +25,7 @@ public class Stylus2 : MonoBehaviour
 	bool initialHit = true;
 	public bool moving = false;
 	Transform prevParent;
+	Transform currentlyHeld;
 	/****************************/
 	protected void Start ()
 	{
@@ -46,7 +47,8 @@ public class Stylus2 : MonoBehaviour
 		                     transform.forward,
 		                     out hit)){
 			contactPoint.SetActive(true);
-			contactPoint.transform.position = hit.point;
+			if(currentlyHeld == null)
+				contactPoint.transform.position = hit.point;
 			if (lastHoveredGO != null){
 				lastHoveredGO.GO.GetComponent<Renderer>().material.color = lastHoveredGO.originalColor;
 			}
@@ -61,18 +63,33 @@ public class Stylus2 : MonoBehaviour
 			if (initialHit && hit.collider.gameObject.tag == "Cell")
 				prevParent = hit.transform.parent;
 				
+			Transform contactPt = GameObject.FindGameObjectWithTag ("ContactPoint").transform;
 
-			if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.tag == "Cell") {
+			if (GameParams.gameInPlay) {
+				if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.layer == 8 && !firstWidgetPress && !moving
+					&& hit.collider.gameObject.name.Equals("Stop", System.StringComparison.OrdinalIgnoreCase)) {
+					firstWidgetPress = true;
+					hit.collider.gameObject.GetComponent<TextWidgetBehavior> ().acting = true;
+				} else if (!_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0)) {
+					firstWidgetPress = false;
+				}
+			}
+			else if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.tag == "Cell") {
+				if (currentlyHeld == null) {
+					currentlyHeld = hit.transform;
+				}
+
 				moving = true;
-				hit.collider.gameObject.GetComponent<Renderer> ().material.color = new Color (0f, 1f, 0f, .5f);
-				hit.transform.parent = GameObject.FindGameObjectWithTag ("ContactPoint").transform;
+				//currentlyHeld.gameObject.GetComponent<Renderer> ().material.color = new Color (0f, 1f, 0f, .5f);
+
+				currentlyHeld.parent = contactPt;
 
 				// calculate the gridposition
-				GameObject cell = hit.collider.gameObject;
+				GameObject cell = currentlyHeld.gameObject;
 				Vector3 offset = new Vector3 (cell.GetComponent<CellParams> ().cellWidth / (-2.0f), 
 					                 cell.GetComponent<CellParams> ().cellHeight / (-2.0f),
 					                 cell.GetComponent<CellParams> ().cellLength / (-2.0f));
-				hit.collider.gameObject.GetComponent<CellParams> ().gridPosition = hit.transform.position + offset;
+				cell.GetComponent<CellParams> ().gridPosition = currentlyHeld.position + offset;
 
 				lastCellSelected = cell;
 
@@ -80,6 +97,8 @@ public class Stylus2 : MonoBehaviour
 			} else if (hit.collider.gameObject.tag == "Cell") {
 				moving = false;
 				hit.transform.parent = prevParent;
+				contactPt.DetachChildren ();
+				currentlyHeld = null;
 			} else if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.layer == 8 && !firstWidgetPress && !moving) {
 				firstWidgetPress = true;
 				hit.collider.gameObject.GetComponent<TextWidgetBehavior> ().acting = true;
@@ -89,6 +108,8 @@ public class Stylus2 : MonoBehaviour
 			}
 			else  if (!_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0)) {
 				firstWidgetPress = false;
+				contactPt.DetachChildren ();
+				currentlyHeld = null;
 			}
 
 

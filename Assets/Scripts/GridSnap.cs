@@ -77,6 +77,7 @@ public class GridSnap : MonoBehaviour {
 			if (!stylus.GetComponent<Stylus2> ().moving) {
 				GetComponent<CellParams> ().gridPosition = position;
 				transform.rotation = Quaternion.identity;
+				transform.Rotate(new Vector3(0.0f, GetComponent<CellParams>().rotationY * 1.0f, 0.0f));
 			}
 
 		} else {

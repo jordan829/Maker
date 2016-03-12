@@ -35,6 +35,13 @@ public class TextDisplays : MonoBehaviour {
 				GetComponent<TextMesh> ().text = name + " ";
 			}
 			break;
+		case "Rot":
+			if (stylus.GetComponent<Stylus2> ().lastCellSelected != null) {
+				GetComponent<TextMesh> ().text = name + " " + stylus.GetComponent<Stylus2>().lastCellSelected.GetComponent<CellParams>().rotationY;
+			} else {
+				GetComponent<TextMesh> ().text = name + " ";
+			}
+			break;
 		default:
 			break;
 
