@@ -27,6 +27,11 @@ public class Stylus2 : MonoBehaviour
 	Transform prevParent;
 	Transform currentlyHeld;
 	/****************************/
+	float timeFirstClick;
+	bool timeFirstRelease;
+	float timeSecondClick;
+	bool timeSecondRelease;
+	/****************************/
 	protected void Start ()
 	{
 		_zsCore = GameObject.Find ("ZSCore").GetComponent<ZSCore> ();
@@ -38,6 +43,11 @@ public class Stylus2 : MonoBehaviour
 		contactPoint.SetActive(false);
 		lastHoveredGO = null;
 		firstWidgetPress = false;
+
+		timeFirstClick = -10.0f;
+		timeFirstRelease = false;
+		timeSecondClick = 0.0f;
+		timeSecondRelease = true;
 	}
 	
 	public void Update(){
@@ -50,13 +60,13 @@ public class Stylus2 : MonoBehaviour
 			if(currentlyHeld == null)
 				contactPoint.transform.position = hit.point;
 			if (lastHoveredGO != null){
-				lastHoveredGO.GO.GetComponent<Renderer>().material.color = lastHoveredGO.originalColor;
+				//lastHoveredGO.GO.GetComponent<Renderer>().material.color = lastHoveredGO.originalColor;
 			}
 			else {
 				lastHoveredGO = new LastHoveredGO();
 			}
 			lastHoveredGO.GO = hit.collider.gameObject;
-			lastHoveredGO.originalColor = hit.collider.gameObject.GetComponent<Renderer>().material.color;
+			//lastHoveredGO.originalColor = hit.collider.gameObject.GetComponent<Renderer>().material.color;
 
 			/*******************************************************************************/
 
@@ -66,12 +76,43 @@ public class Stylus2 : MonoBehaviour
 			Transform contactPt = GameObject.FindGameObjectWithTag ("ContactPoint").transform;
 
 			if (GameParams.gameInPlay) {
+				// Stopping play mode
 				if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.layer == 8 && !firstWidgetPress && !moving
-					&& hit.collider.gameObject.name.Equals("Stop", System.StringComparison.OrdinalIgnoreCase)) {
+				    && hit.collider.gameObject.name.Equals ("Stop", System.StringComparison.OrdinalIgnoreCase)) {
 					firstWidgetPress = true;
 					hit.collider.gameObject.GetComponent<TextWidgetBehavior> ().acting = true;
-				} else if (!_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0)) {
+				} 
+				// Moving player
+				else if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.layer == 10) {
+					// Move to position of contact point
+
+					if (timeFirstClick <= -10.0f && timeSecondRelease) {
+						timeFirstClick = Time.time;
+						GameObject.FindGameObjectWithTag ("Player").GetComponent<PlayerMovement>().MoveTo(contactPoint.transform.position);
+						timeSecondRelease = false;
+						timeSecondClick = 0.0f;
+					} else if(timeFirstRelease) {
+						timeSecondClick = Time.time;
+						timeFirstRelease = false;
+
+						if (timeSecondClick - timeFirstClick < 0.3f &&
+						    timeSecondClick - timeFirstClick > 0.0f) {
+							GameObject.FindGameObjectWithTag ("Player").GetComponent<PlayerMovement> ().Jump ();
+						} else if(timeSecondClick - timeFirstClick > 0.3f) {
+							timeSecondRelease = true;
+						}
+						timeFirstClick = -10.0f;
+					}
+				}
+
+				else if (!_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0)) {
 					firstWidgetPress = false;
+					if (timeFirstClick > -10.0f) {
+						timeFirstRelease = true;
+					}
+					if (timeSecondClick > 0.0f) {
+						timeSecondRelease = true;
+					}
 				}
 			}
 			else if (_zsCore.IsTrackerTargetButtonPressed (ZSCore.TrackerTargetType.Primary, 0) && hit.collider.gameObject.tag == "Cell") {
@@ -120,7 +161,7 @@ public class Stylus2 : MonoBehaviour
 		else{
 			contactPoint.SetActive(false);
 			if (lastHoveredGO != null){
-				lastHoveredGO.GO.GetComponent<Renderer>().material.color = lastHoveredGO.originalColor;
+				//lastHoveredGO.GO.GetComponent<Renderer>().material.color = lastHoveredGO.originalColor;
 				lastHoveredGO = null;
 			}
 		}

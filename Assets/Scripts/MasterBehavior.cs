@@ -16,6 +16,7 @@ public class MasterBehavior : MonoBehaviour {
 	public Transform rampMaster;
 	public Transform platformMaster;
 	public Transform playerMaster;
+	public Transform donutMaster;
 
 	public static List<Transform> allCells;
 
@@ -107,6 +108,15 @@ public class MasterBehavior : MonoBehaviour {
 						playerTransform = lastInstantiated;
 						allCells.Add (lastInstantiated);
 					}
+				}
+				break;
+
+			case "DonutObjMaster":
+				if (lastInstantiated == null || (lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.x >= 0 || lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.x < -1 ||
+					lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.y >= 1 || lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.y < 0 ||
+					lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.z >= 1 || lastInstantiated.gameObject.GetComponent<CellParams> ().gridPosition.z < 0)) {
+					lastInstantiated = Instantiate (donutMaster);
+					allCells.Add (lastInstantiated);
 				}
 				break;
 

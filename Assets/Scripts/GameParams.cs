@@ -41,6 +41,9 @@ public class GameParams : MonoBehaviour {
 			if (former.GetChild(0).CompareTag ("Player")) {
 				former.GetChild(0).gameObject.GetComponent<Rigidbody> ().useGravity = true;
 			}
+			if (former.GetChild (0).CompareTag ("Goal")) {
+				former.GetChild (0).gameObject.GetComponent<Collider> ().isTrigger = true;
+			}
 			Destroy(former.GetComponent<Rigidbody>());
 			Destroy(former.GetComponent<Collider>());
 			Destroy(former.GetComponent<MeshFilter>());
